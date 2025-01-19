@@ -13,6 +13,7 @@
     "paths": {
       "@/*": ["src/*"]
     },
+      "types": ["vite/client", "vue-sweetalert2"]
     /* Visit https://aka.ms/tsconfig to read more about this file */
 
     /* Projects */
@@ -119,6 +120,6 @@
     // "skipDefaultLibCheck": true,                      /* Skip type checking .d.ts files that are included with TypeScript. */
     //"skipLibCheck": true                                 /* Skip type checking all .d.ts files. */
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue"],
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx", "src/**/*.vue", "env.d.ts"],
   "exclude": ["node_modules"]
 }

@@ -27,3 +27,10 @@ npm run dev
 ```sh
 npm run build
 ```
+
+### .env
+Create .env file and introduce environment variables
+````
+VITE_WS_SALARY_CALCULATOR // URL API SALARY CALCULATOR
+VITE_KEY_SALARY_CALCULATOR // KEY TO CONSUME API
+````
