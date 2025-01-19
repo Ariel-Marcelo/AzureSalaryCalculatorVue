@@ -15,11 +15,17 @@ const handleError = (error: unknown): Error => {
 
     if (axios.isAxiosError(error)) {
         if (error.response) {
-            const errorData = (error.response.data as ErrorApiResponse);
-            let serverMessage = errorData.message || 'Error en la respuesta del servidor'
-            errorData.errors.forEach(errorMessage =>
-                serverMessage += ", " +  errorMessage
-            )
+            let serverMessage = ''
+            console.log("error.status: ", error.status)
+            if (error.status === 400) {
+                const errorData = (error.response.data as ErrorApiResponse);
+                serverMessage = errorData.message || 'Error en la respuesta del servidor'
+                errorData.errors.forEach(errorMessage =>
+                    serverMessage += ", " +  errorMessage
+                )
+            } else {
+                serverMessage = error.message
+            }
             return  new Error(serverMessage);
         } else if (error.request) {
             return new Error('No se recibió respuesta del servidor.');
