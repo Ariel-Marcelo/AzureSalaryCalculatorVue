@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-3xl mx-auto bg-gray-850 rounded-lg shadow-xl p-6">
       <div class="bg-gray-750 shadow-lg rounded-lg p-6 mb-4">
-        <h1 class="text-center text-2xl font-bold text-vue-green mb-6">Calculadora de Salarios</h1>
+        <h1 class="text-center text-2xl font-bold text-vue-green mb-6">Calculadora de Salarios Ec</h1>
         <form @submit.prevent="handleSubmit" class="space-y-6">
           <div class="space-y-4">
             <label class="flex items-center space-x-3">
