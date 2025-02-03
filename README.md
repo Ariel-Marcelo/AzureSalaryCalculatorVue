@@ -1,36 +1,60 @@
-# salary_calculator_ec
+# Salary Calculator EC
 
-This template should help get you started developing with Vue 3 in Vite.
+Este proyecto en **Vue.js** está diseñado para calcular rápidamente el salario neto de los trabajadores en Ecuador, teniendo en cuenta impuestos y otras deducciones. El cálculo se realiza a través de una API.
 
-## Recommended IDE Setup
+## Backend del Proyecto
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+El backend para este proyecto está disponible en el siguiente repositorio de GitHub:
 
-## Customize configuration
+[Backend - AzureSalaryCalculator](https://github.com/Ariel-Marcelo/AzureSalaryCalculator)
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+## Requisitos previos
 
-## Project Setup
+Asegúrate de tener **Node.js** y **npm** instalados en tu entorno de desarrollo. Puedes descargarlos desde:
+
+- [Node.js](https://nodejs.org)
+
+## Configuración del Proyecto
+
+1. Clona este repositorio en tu máquina local:
+
+    ```sh
+    git clone https://github.com/tu_usuario/salary-calculator-ec.git
+    ```
+
+2. Navega hasta el directorio del proyecto:
+
+    ```sh
+    cd salary-calculator-ec
+    ```
+
+3. Crea un archivo `.env` en la raíz del proyecto y agrega las siguientes variables de entorno con los valores correspondientes:
+
+    ```env
+    VITE_WS_SALARY_CALCULATOR=<URL_DE_LA_API_SALARY_CALCULATOR>
+    VITE_KEY_SALARY_CALCULATOR=<TU_CLAVE_DE_API>
+    ```
+
+   **Nota**: Asegúrate de reemplazar `<URL_DE_LA_API_SALARY_CALCULATOR>` y `<TU_CLAVE_DE_API>` con los valores adecuados que te proporcionarán al momento de consumir la API.
+
+## Instalación de Dependencias
+
+Instala las dependencias necesarias ejecutando el siguiente comando:
 
 ```sh
 npm install
 ```
 
-### Compile and Hot-Reload for Development
+## Construcción del Proyecto
+
+Levantar en nuestro entorno local el proyecto:
 
 ```sh
 npm run dev
 ```
 
-### Compile and Minify for Production
+Para crear una versión optimizada y lista para producción del proyecto, que puedas desplegar en cualquier servidor configurado para servir aplicaciones web (HTML, CSS, JS), ejecuta el siguiente comando:
 
 ```sh
 npm run build
 ```
-
-### .env
-Create .env file and introduce environment variables
-````
-VITE_WS_SALARY_CALCULATOR // URL API SALARY CALCULATOR
-VITE_KEY_SALARY_CALCULATOR // KEY TO CONSUME API
-````

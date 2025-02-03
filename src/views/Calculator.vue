@@ -2,7 +2,7 @@
   <div class="min-h-screen bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
     <div class="max-w-3xl mx-auto bg-gray-850 rounded-lg shadow-xl p-6">
       <div class="bg-gray-750 shadow-lg rounded-lg p-6 mb-4">
-        <h1 class="text-center text-2xl font-bold text-vue-green mb-6">Calculadora de Salarios Ec</h1>
+        <h1 class="text-center text-2xl font-bold text-vue-green mb-6">Calculadora de Salarios en Ecuador</h1>
         <form @submit.prevent="handleSubmit" class="space-y-6">
           <div class="space-y-4">
             <label class="flex items-center space-x-3">
@@ -19,12 +19,12 @@
                   v-model="formData.ivaIncluded"
                   class="form-checkbox h-5 w-5 text-vue-green"
               />
-              <span class="text-gray-300">IVA Included</span>
+              <span class="text-gray-300">¿El salario acordado, incluye IVA?</span>
             </label>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label class="block text-gray-300 mb-2">Salary Signed</label>
+              <label class="block text-gray-300 mb-2">Salario Acordado</label>
               <div class="relative">
                 <input
                     type="number"
@@ -42,7 +42,7 @@
               </div>
             </div>
             <div v-if="formData.isDependencyContract">
-              <label class="block text-gray-300 mb-2">Salary Bonus</label>
+              <label class="block text-gray-300 mb-2">Bonos adicionales (mensuales)</label>
               <div class="relative">
                 <input
                     type="number"
@@ -60,7 +60,7 @@
               </div>
             </div>
             <div>
-              <label class="block text-gray-300 mb-2">Init Date</label>
+              <label class="block text-gray-300 mb-2">Fecha de entrada</label>
               <input
                   type="date"
                   v-model="formData.initDate"
@@ -68,7 +68,7 @@
               />
             </div>
             <div>
-              <label class="block text-gray-300 mb-2">End Date</label>
+              <label class="block text-gray-300 mb-2">Fecha de Salida</label>
               <input
                   type="date"
                   v-model="formData.endDate"
@@ -76,7 +76,7 @@
               />
             </div>
             <div>
-              <label class="block text-gray-300 mb-2">IEES Salary</label>
+              <label class="block text-gray-300 mb-2">Salario registrado en el IEES</label>
               <div class="relative">
                 <input
                     type="number"
@@ -84,6 +84,7 @@
                     class="w-full bg-gray-700 text-white rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-vue-green pl-10 input-number"
                     step="0.01"
                     min="0"
+                    :disabled="formData.isDependencyContract"
                 />
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <span class="text-gray-400">$</span>
@@ -101,7 +102,7 @@
                   v-model="formData.accumulatedBenefits"
                   class="form-checkbox h-5 w-5 text-vue-green"
               />
-              <span class="text-gray-300">Accumulated Benefits</span>
+              <span class="text-gray-300">¿Acumulará sus beneficios de ley para que se cancelen en los meses designados por la ley Ecuatoriana?</span>
             </label>
 
           </div>
@@ -112,7 +113,7 @@
               :disabled="loading"
               class="w-full bg-vue-green hover:bg-vue-green/90 text-white font-bold py-2 px-4 rounded-md transition-colors"
           >
-            {{ loading ? 'Submitting...' : 'Submit' }}
+            {{ loading ? 'Calculando...' : 'Calcular' }}
           </button>
         </form>
       </div>
@@ -128,28 +129,21 @@
             Clear All Results
           </button>
         </div>
-        <div v-for="response in formStore.responses" class="bg-vue-dark hover:bg-vue-green/90 text-white shadow-md rounded-lg">
+        <div v-for="(response) in formStore.responses" class="bg-vue-dark hover:bg-vue-green/90 text-white shadow-md rounded-lg">
           <details class="p-4">
             <summary class="cursor-pointer font-medium ">
-              Response from {{ new Date().toLocaleString() }}
+              Liquidez Mensual : {{response.liquidityMonthAmount}}
             </summary>
-            <div class="mt-4 text-white">
-              Liquidez Mensual : {{ response.liquidityMonthAmount }}
-            </div>
-            <div class="mt-4 text-white">
-              Gasto Mensual para la empresa : {{ response.enterpriseMonthAmount }}
-            </div>
-            <div class="mt-4 text-white">
-              Liquidez {{ new Date(response.startDate).toLocaleString() }} -
-              {{ new Date(response.finalDate).toLocaleString() }} : {{ response.liquidityMonthAmount }}
-            </div>
-            <div class="mt-4 text-white">
-              Gasto para la empresa {{ new Date(response.startDate).toLocaleString() }} -
-              {{ new Date(response.finalDate).toLocaleString() }}: {{ response.enterpriseMonthAmount }}
-            </div>
-            <div class="mt-4 text-white">
-              Sueldo declarado en el IEES : {{ response.ieesSalary }}
-            </div>
+            <FinancialCard
+                class="mt-2"
+                :end-date="new Intl.DateTimeFormat('es-ES').format(new Date(response.finalDate))"
+                :start-date="new Intl.DateTimeFormat('es-ES').format(new Date(response.startDate))"
+                :declared-salary="response.ieesSalary"
+                :expense-between-dates="response.enterpriseAmountInTime"
+                :liquidity-between-dates="response.liquidityAmountInTime"
+                :monthly-expense="response.enterpriseMonthAmount"
+                :liquidity-monthly="response.liquidityMonthAmount"
+            />
           </details>
         </div>
       </div>
@@ -159,10 +153,12 @@
 
 <script setup lang="ts">
 import {useFormStore} from "@/stores/formStore.ts";
-import {computed, reactive, ref} from "vue";
+import {computed, reactive, ref, watch} from "vue";
 import type {ApiRequest} from "@/Shared/types/salaryCalculatorApi.ts";
 import { swalError } from "@/Shared/swalAlert.ts"
+import FinancialCard from "@/components/FinancialCard.vue";
 const formStore = useFormStore()
+
 
 const formData = reactive<ApiRequest>({
   salarySigned: null,
@@ -173,6 +169,12 @@ const formData = reactive<ApiRequest>({
   accumulatedBenefits: false,
   ivaIncluded: false,
   ieesSalary: null
+})
+
+watch(() => formData.salarySigned, (newVal) => {
+  if(newVal) {
+    formData.ieesSalary = newVal;
+  }
 })
 
 const isSubmitting = ref(false)
@@ -221,9 +223,9 @@ const clearForm = () => {
   formData.accumulatedBenefits = false
 }
 
-const displaySalarySigned = computed(() => formatCurrency(formData.salarySigned));
-const displaySalaryBonus = computed(() => formatCurrency(formData.salaryBonus));
-const displayIeesSalary = computed(() => formatCurrency(formData.ieesSalary));
+const displaySalarySigned = computed(() => formatCurrency(formData.salarySigned?? 0));
+const displaySalaryBonus = computed(() => formatCurrency(formData.salaryBonus ?? 0));
+const displayIeesSalary = computed(() => formatCurrency(formData.ieesSalary ?? 0));
 
 
 const loading = ref(false);
