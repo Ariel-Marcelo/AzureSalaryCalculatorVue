@@ -16,7 +16,6 @@ const handleError = (error: unknown): Error => {
     if (axios.isAxiosError(error)) {
         if (error.response) {
             let serverMessage = ''
-            console.log("error.status: ", error.status)
             if (error.status === 400) {
                 const errorData = (error.response.data as ErrorApiResponse);
                 serverMessage = errorData.message || 'Error en la respuesta del servidor'

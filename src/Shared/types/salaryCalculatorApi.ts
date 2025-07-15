@@ -7,6 +7,8 @@ export interface ApiRequest {
     accumulatedBenefits: boolean,
     ivaIncluded: boolean,
     ieesSalary: number | null
+    utilities: number | null,
+    hasReserveFunds: boolean,
 }
 
 export interface ApiResponse {
@@ -32,5 +34,7 @@ export interface SalaryEstimation {
     daysWorked: number,
     monthsWorked: number,
     yearsWorked: number,
+    utilitiesPerMonth: number,
+    utilitiesInTime: number,
     details: Array<Object>,
 }

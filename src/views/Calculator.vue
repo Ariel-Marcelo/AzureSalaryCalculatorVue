@@ -4,22 +4,57 @@
       <div class="bg-gray-750 shadow-lg rounded-lg p-6 mb-4">
         <h1 class="text-center text-2xl font-bold text-vue-green mb-6">Calculadora de Salarios en Ecuador</h1>
         <form @submit.prevent="handleSubmit" class="space-y-6">
+          <div class="flex flex-col gap-2 text-white">
+            <span>Seleccione su tipo de contrato</span>
+            <div id="button-group"
+                 class="inline-flex rounded-md shadow-sm"
+                 role="group">
+              <button type="button"
+                      :class="['btn-option px-4 py-2 text-sm font-medium border border-gray-300 text-gray-700 bg-white hover:bg-gray-100 rounded-l-md',
+                          selected == 'benefit'
+                          ? 'text-green-500'
+                          : 'border-green-500'
+                        ]"
+                      @click="showBenefitContract()"
+              >
+                Beneficios de Ley
+              </button>
+              <button type="button"
+                      :class="['btn-option px-4 py-2 text-sm font-medium border-t border-b border-gray-300 text-gray-700 bg-white hover:bg-gray-100 rounded-r-md',
+                          selected == 'bill'
+                          ? 'text-green-500'
+                          : 'border-green-500'
+                        ]"
+                      @click="showBillContract()"
+              >
+                Bajo Facturación
+              </button>
+            </div>
+          </div>
           <div class="space-y-4">
-            <label class="flex items-center space-x-3">
+            <label v-if="formData.isDependencyContract" class="flex items-center space-x-3">
               <input
+                  v-model="formData.hasReserveFunds"
                   type="checkbox"
-                  v-model="formData.isDependencyContract"
                   class="form-checkbox h-5 w-5 text-vue-green"
               />
-              <span class="text-gray-300">¿Tiene un contrato de relación de dependencia?</span>
+              <span class="text-gray-300">Incluir Fondos de Reserva</span>
             </label>
             <label v-if="!formData.isDependencyContract" class="flex items-center space-x-3">
               <input
-                  type="checkbox"
                   v-model="formData.ivaIncluded"
+                  type="checkbox"
                   class="form-checkbox h-5 w-5 text-vue-green"
               />
-              <span class="text-gray-300">¿El salario acordado, incluye IVA?</span>
+              <span class="text-gray-300">El salario acordado incluye IVA</span>
+            </label>
+            <label v-if="!formData.isDependencyContract" class="flex items-center space-x-3">
+              <input
+                  v-model="ieesVolunteer"
+                  type="checkbox"
+                  class="form-checkbox h-5 w-5 text-vue-green"
+              />
+              <span class="text-gray-300">Es afiliado voluntario al iees</span>
             </label>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -38,7 +73,7 @@
                 </div>
               </div>
               <div class="text-sm text-gray-400 mt-1">
-                Formatted: {{ displaySalarySigned }}
+                USD: {{ displaySalarySigned }}
               </div>
             </div>
             <div v-if="formData.isDependencyContract">
@@ -56,7 +91,7 @@
                 </div>
               </div>
               <div class="text-sm text-gray-400 mt-1">
-                Formatted: {{ displaySalaryBonus }}
+                USD: {{ displaySalaryBonus }}
               </div>
             </div>
             <div>
@@ -84,14 +119,32 @@
                     class="w-full bg-gray-700 text-white rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-vue-green pl-10 input-number"
                     step="0.01"
                     min="0"
-                    :disabled="formData.isDependencyContract"
+                    :disabled="formData.isDependencyContract || !ieesVolunteer"
                 />
                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <span class="text-gray-400">$</span>
                 </div>
               </div>
               <div class="text-sm text-gray-400 mt-1">
-                Formatted: {{ displayIeesSalary }}
+                USD: {{ displayIeesSalary }}
+              </div>
+            </div>
+            <div v-if="formData.isDependencyContract">
+              <label class="block text-gray-300 mb-2">Utilidades anuales estimadas</label>
+              <div class="relative">
+                <input
+                    type="number"
+                    v-model="formData.utilities"
+                    class="w-full bg-gray-700 text-white rounded-md px-4 py-2 focus:outline-none focus:ring-2 focus:ring-vue-green pl-10 input-number"
+                    step="0.01"
+                    min="0"
+                />
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <span class="text-gray-400">$</span>
+                </div>
+              </div>
+              <div class="text-sm text-gray-400 mt-1">
+                USD: {{ displayUtilities }}
               </div>
             </div>
           </div>
@@ -136,13 +189,7 @@
             </summary>
             <FinancialCard
                 class="mt-2"
-                :end-date="new Intl.DateTimeFormat('es-ES').format(new Date(response.finalDate))"
-                :start-date="new Intl.DateTimeFormat('es-ES').format(new Date(response.startDate))"
-                :declared-salary="response.ieesSalary"
-                :expense-between-dates="response.enterpriseAmountInTime"
-                :liquidity-between-dates="response.liquidityAmountInTime"
-                :monthly-expense="response.enterpriseMonthAmount"
-                :liquidity-monthly="response.liquidityMonthAmount"
+                :salary-estimation="response"
             />
           </details>
         </div>
@@ -159,6 +206,8 @@ import { swalError } from "@/Shared/swalAlert.ts"
 import FinancialCard from "@/components/FinancialCard.vue";
 const formStore = useFormStore()
 
+const selected = ref('bill')
+const ieesVolunteer = ref(false)
 
 const formData = reactive<ApiRequest>({
   salarySigned: null,
@@ -168,11 +217,13 @@ const formData = reactive<ApiRequest>({
   endDate: "",
   accumulatedBenefits: false,
   ivaIncluded: false,
-  ieesSalary: null
+  ieesSalary: null,
+  utilities: null,
+  hasReserveFunds: false
 })
 
 watch(() => formData.salarySigned, (newVal) => {
-  if(newVal) {
+  if(newVal && (ieesVolunteer.value || formData.isDependencyContract)) {
     formData.ieesSalary = newVal;
   }
 })
@@ -218,16 +269,27 @@ const clearForm = () => {
   formData.ieesSalary = null
   formData.initDate = ""
   formData.endDate = ""
-  formData.isDependencyContract = false
   formData.ivaIncluded = false
   formData.accumulatedBenefits = false
+  formData.utilities = null
+  ieesVolunteer.value = false
 }
 
 const displaySalarySigned = computed(() => formatCurrency(formData.salarySigned?? 0));
 const displaySalaryBonus = computed(() => formatCurrency(formData.salaryBonus ?? 0));
 const displayIeesSalary = computed(() => formatCurrency(formData.ieesSalary ?? 0));
-
+const displayUtilities = computed(() => formatCurrency(formData.utilities ?? 0));
 
 const loading = ref(false);
 const success = ref(false);
+
+const showBenefitContract = () => {
+  selected.value = 'benefit'
+  formData.isDependencyContract = true;
+}
+
+const showBillContract = () => {
+  selected.value = 'bill'
+  formData.isDependencyContract = false;
+}
 </script>
